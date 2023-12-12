@@ -1,0 +1,501 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/Justworkname/6367_project/blob/main/Deeper_Regression\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "-FqB8OAybdqy"
+      },
+      "source": [
+        "# Regression Model V2_smaller_deltas_testing\n",
+        "\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "RsPVBTxwE43b"
+      },
+      "source": [
+        "## Import"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "dEnsMMoaLuLU"
+      },
+      "outputs": [],
+      "source": [
+        "!pip install -q torchinfo"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "h7jaGykr8u_F"
+      },
+      "outputs": [],
+      "source": [
+        "import torch\n",
+        "import torch.nn as nn\n",
+        "import torch.optim as optim\n",
+        "import torchvision\n",
+        "import torch.optim as optim\n",
+        "from torchvision import datasets, transforms\n",
+        "from torchinfo import summary\n",
+        "import numpy as np\n",
+        "import pandas as pd\n",
+        "import os\n",
+        "from PIL import Image\n",
+        "from glob import glob\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.preprocessing import StandardScaler\n",
+        "from sklearn.metrics import r2_score\n",
+        "import matplotlib.pyplot as plt\n",
+        "import torch.optim.lr_scheduler as lr_scheduler"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "colab": {
+          "background_save": true
+        },
+        "id": "rgKDlTXT_DTn",
+        "outputId": "7f59f3fa-2a2e-48c4-d785-490d8dd63ce8"
+      },
+      "outputs": [
+        {
+          "ename": "ValueError",
+          "evalue": "ignored",
+          "output_type": "error",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mValueError\u001b[0m                                Traceback (most recent call last)",
+            "\u001b[0;32m<ipython-input-3-18b6a4f4c809>\u001b[0m in \u001b[0;36m<cell line: 2>\u001b[0;34m()\u001b[0m\n\u001b[1;32m      1\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mgoogle\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcolab\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mdrive\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 2\u001b[0;31m \u001b[0mdrive\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mmount\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m'/content/gdrive'\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      3\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      4\u001b[0m \u001b[0;31m# this creates a link so that now the path /content/gdrive/My\\ Drive/ is equal to /mydrive\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      5\u001b[0m \u001b[0mget_ipython\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0msystem\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m'ln -s /content/gdrive/My\\\\ Drive/ /mydrive'\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/dist-packages/google/colab/drive.py\u001b[0m in \u001b[0;36mmount\u001b[0;34m(mountpoint, force_remount, timeout_ms, readonly)\u001b[0m\n\u001b[1;32m    101\u001b[0m \u001b[0;32mdef\u001b[0m \u001b[0mmount\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mmountpoint\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mforce_remount\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;32mFalse\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mtimeout_ms\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;36m120000\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mreadonly\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;32mFalse\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    102\u001b[0m   \u001b[0;34m\"\"\"Mount your Google Drive at the specified mountpoint path.\"\"\"\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 103\u001b[0;31m   return _mount(\n\u001b[0m\u001b[1;32m    104\u001b[0m       \u001b[0mmountpoint\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    105\u001b[0m       \u001b[0mforce_remount\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mforce_remount\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/dist-packages/google/colab/drive.py\u001b[0m in \u001b[0;36m_mount\u001b[0;34m(mountpoint, force_remount, timeout_ms, ephemeral, readonly)\u001b[0m\n\u001b[1;32m    277\u001b[0m             \u001b[0;34m'https://research.google.com/colaboratory/faq.html#drive-timeout'\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    278\u001b[0m         )\n\u001b[0;32m--> 279\u001b[0;31m       \u001b[0;32mraise\u001b[0m \u001b[0mValueError\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m'mount failed'\u001b[0m \u001b[0;34m+\u001b[0m \u001b[0mextra_reason\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    280\u001b[0m     \u001b[0;32melif\u001b[0m \u001b[0mcase\u001b[0m \u001b[0;34m==\u001b[0m \u001b[0;36m4\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    281\u001b[0m       \u001b[0;31m# Terminate the DriveFS binary before killing bash.\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;31mValueError\u001b[0m: mount failed"
+          ]
+        }
+      ],
+      "source": [
+        "from google.colab import drive\n",
+        "drive.mount('/content/gdrive')\n",
+        "\n",
+        "# this creates a link so that now the path /content/gdrive/My\\ Drive/ is equal to /mydrive\n",
+        "!ln -s /content/gdrive/My\\ Drive/ /mydrive\n",
+        "!ls /mydrive"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "8j9D7eEpE08j"
+      },
+      "source": [
+        "## Hyperparameters"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "colab": {
+          "background_save": true
+        },
+        "id": "drbcyPPtEzo-"
+      },
+      "outputs": [],
+      "source": [
+        "num_epochs=5000\n",
+        "input_dim = 61\n",
+        "output_dim = 1\n",
+        "hidden_dim = 3721\n",
+        "dropout=0.01"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "Jme-ZF6gGXFY"
+      },
+      "source": [
+        "## Load"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "A9uKPfppGYXx"
+      },
+      "outputs": [],
+      "source": [
+        "# Load the CSV file into a DataFrame\n",
+        "csv_file_path = '/content/gdrive/MyDrive/6367_project/data_v2.csv'\n",
+        "df = pd.read_csv(csv_file_path)\n",
+        "df.fillna(0,inplace=True)\n",
+        "df = df.loc[(df != 0).all(axis=1)] # filter if want\n",
+        "\n",
+        "train_patients = ['3', '4', '5', '6', '8', '9','10', '11','13','14','16','19','20','21','23','27']\n",
+        "test_patients = ['25']\n",
+        "\n",
+        "df['Patient #'] = df['Patient #'].astype(str)\n",
+        "\n",
+        "df_train=df[df['Patient #'].isin(train_patients)]\n",
+        "df_test=df[df['Patient #'].isin(test_patients)]\n",
+        "\n",
+        "# Convert to desired data shape\n",
+        "y_train = df_train['Delta Plq Area'] #change with desired prediction\n",
+        "X_train = df_train.drop(columns=['Delta Plq Area','Patient #','Total FU Plq Area','VHIVUS FU img ind','CC FU Area','CC FU Circum Cov.','CC FU max thick',\n",
+        "                     'NC FU Area','NC FU max thick','FI FU Area','FI FU Circum Cov.','FI FU max thick','FF FU Area','FF FU Circum Cov.','FF FU max thick']) #data to exclude\n",
+        "\n",
+        "y_test = df_test['Delta Plq Area'] #change with desired prediction\n",
+        "X_test = df_test.drop(columns=['Delta Plq Area','Patient #','Total FU Plq Area','VHIVUS FU img ind','CC FU Area','CC FU Circum Cov.','CC FU max thick',\n",
+        "                     'NC FU Area','NC FU max thick','FI FU Area','FI FU Circum Cov.','FI FU max thick','FF FU Area','FF FU Circum Cov.','FF FU max thick']) #data to exclude\n",
+        "\n",
+        "X_test.fillna(0, inplace=True)\n",
+        "X_train.fillna(0, inplace=True)\n",
+        "#X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\n",
+        "scaler = StandardScaler()\n",
+        "X_train = scaler.fit_transform(X_train)\n",
+        "X_test = scaler.transform(X_test)\n",
+        "X_train = torch.tensor(X_train, dtype=torch.float32)\n",
+        "y_train = torch.tensor(y_train.values, dtype=torch.float32)\n",
+        "X_test = torch.tensor(X_test, dtype=torch.float32)\n",
+        "y_test = torch.tensor(y_test.values, dtype=torch.float32)\n",
+        "y_train = y_train.view(-1)\n",
+        "y_test = y_test.view(-1)"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "xLdAO2u8VnSb"
+      },
+      "source": [
+        "## Model"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "ked0GgGbNlfi"
+      },
+      "outputs": [],
+      "source": [
+        "class RegressionModel(nn.Module):\n",
+        "    def __init__(self, input_dim, hidden_dim, output_dim, dropout):\n",
+        "        super(RegressionModel, self).__init__()\n",
+        "\n",
+        "        # Define the layers\n",
+        "        self.fc1 = nn.Linear(input_dim, hidden_dim)\n",
+        "        self.relu = nn.ReLU()\n",
+        "        self.fc2 = nn.Linear(hidden_dim, 100)\n",
+        "        self.relu = nn.ReLU()\n",
+        "        self.fc3 = nn.Linear(100, output_dim)\n",
+        "        self.dropout = nn.Dropout(p=dropout)\n",
+        "\n",
+        "    def forward(self, x):\n",
+        "        # Forward pass\n",
+        "        x = self.fc1(x)\n",
+        "        x = self.relu(x)\n",
+        "        x = self.fc2(x)\n",
+        "        x = self.relu(x)\n",
+        "        x = self.dropout(x)\n",
+        "        x = self.fc3(x)\n",
+        "        return x"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "lQW8BqUgWgR9"
+      },
+      "outputs": [],
+      "source": [
+        "model = RegressionModel(input_dim, hidden_dim, output_dim,dropout)"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "UUeen2q_WktW"
+      },
+      "outputs": [],
+      "source": [
+        "summary(model)"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "rH5E9ggmW3XN"
+      },
+      "outputs": [],
+      "source": [
+        "# Mean Squared Error loss\n",
+        "criterion = nn.SmoothL1Loss()\n",
+        "# Apply optimizer\n",
+        "optimizer = optim.SGD(model.parameters(), lr=0.001)\n",
+        "# Learning rate scheduler\n",
+        "#scheduler = lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "Ic75VmtZXEkv"
+      },
+      "source": [
+        "## Training"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "EBQXVaRnW9tB"
+      },
+      "outputs": [],
+      "source": [
+        "# List for Loss and R squared\n",
+        "losses = []\n",
+        "val_losses = []\n",
+        "r2_values = []\n",
+        "r2_validation = []\n",
+        "\n",
+        "# Training loop\n",
+        "for epoch in range(num_epochs):\n",
+        "    # Forward pass\n",
+        "    outputs = model(X_train)\n",
+        "    outputs = outputs.squeeze(dim=1)\n",
+        "\n",
+        "    # Compute the loss\n",
+        "    ## Could consider Huber Loss\n",
+        "    loss = criterion(outputs, y_train)\n",
+        "\n",
+        "    # Backpropagation and optimization\n",
+        "    optimizer.zero_grad()\n",
+        "    loss.backward()\n",
+        "    optimizer.step()\n",
+        "\n",
+        "    # Learning rate annealing\n",
+        "    #scheduler.step()\n",
+        "\n",
+        "    # Calculate R-squared\n",
+        "    y_pred = outputs.detach().numpy()\n",
+        "    r2 = r2_score(y_train.numpy(), y_pred)\n",
+        "\n",
+        "    # Store loss and R-squared values for this epoch\n",
+        "    losses.append(loss.item())\n",
+        "    r2_values.append(r2)\n",
+        "\n",
+        "    # Testing predictions\n",
+        "    y_pred = model(X_test).detach().numpy()\n",
+        "    # Calculate R-squared accuracy on the test data\n",
+        "    r2_test = r2_score(y_test.numpy(), y_pred)\n",
+        "    r2_validation.append(r2_test)\n",
+        "    val_out = model(X_test)\n",
+        "    val_out = val_out.squeeze(dim=1)\n",
+        "    val_loss = criterion(val_out,y_test)\n",
+        "    val_losses.append(val_loss.item())\n",
+        "\n",
+        "    print('Epoch [{}/{}], Loss: {:.4f}, R-squared: {:.4f},Validation_loss:{:,.4f}, Validation R_squared:{:,.4f}'.format(epoch+1, num_epochs, loss.item(), r2,val_loss.item(),r2_test))"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "YqblYI8lZvgD"
+      },
+      "source": [
+        "## Plots"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "p1ANe_saXJbs"
+      },
+      "outputs": [],
+      "source": [
+        "# Create a scatter plot of actual vs. predicted values\n",
+        "plt.figure(figsize=(8, 6))\n",
+        "plt.scatter(y_test, y_pred, color='blue', label='Actual vs. Predicted')\n",
+        "plt.xlabel('Actual Values')\n",
+        "plt.ylabel('Predicted Values')\n",
+        "plt.title('Actual vs. Predicted Values')\n",
+        "plt.legend()\n",
+        "plt.grid(True)\n",
+        "plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], linestyle='--', color='red', label='Perfect Prediction')\n",
+        "plt.legend()\n",
+        "\n",
+        "# Display the plot\n",
+        "plt.show()"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "CmxwmAXIZzG3"
+      },
+      "outputs": [],
+      "source": [
+        "# Create a plot for the loss\n",
+        "plt.figure(figsize=(12, 5))\n",
+        "plt.subplot(1, 2, 1)\n",
+        "plt.plot(range(num_epochs), losses, label='Test', color='green')\n",
+        "plt.plot(range(num_epochs), val_losses, label='Validation', color='orange')\n",
+        "plt.xlabel('Epoch')\n",
+        "plt.ylabel('Loss')\n",
+        "plt.title('Training Loss Over Epochs')\n",
+        "plt.legend()\n",
+        "plt.grid(True)\n",
+        "\n",
+        "# Create a plot for R-squared\n",
+        "plt.subplot(1, 2, 2)\n",
+        "plt.plot(range(num_epochs), r2_values, label='Test', color='green')\n",
+        "plt.plot(range(num_epochs), r2_validation, label='Validation', color='orange')\n",
+        "plt.xlabel('Epoch')\n",
+        "plt.ylabel('R-squared')\n",
+        "plt.title('R-squared Over Epochs')\n",
+        "plt.legend()\n",
+        "plt.grid(True)\n",
+        "\n",
+        "# Display Plot\n",
+        "plt.show()"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "nq5cI7hFTW9L"
+      },
+      "source": [
+        "## Gradient"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "ZvmsQP6NQopn"
+      },
+      "outputs": [],
+      "source": [
+        "#extract grad\n",
+        "parameter_importance = model.fc1.weight.grad"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "oWDvTp5TTalM"
+      },
+      "outputs": [],
+      "source": [
+        "# Convert the parameter_importance tensor to a NumPy array\n",
+        "parameter_importance_img = parameter_importance.detach().numpy()\n",
+        "# Normalize the values to [0, 1]\n",
+        "min_val = parameter_importance_img.min()\n",
+        "max_val = parameter_importance_img.max()\n",
+        "\n",
+        "parameter_importance_img = (parameter_importance_img - min_val) / (max_val - min_val)\n",
+        "parameter_importance_img = np.floor(parameter_importance_img*255)"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "D9yxY0ssU-DQ"
+      },
+      "source": [
+        "Display"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "qsrtrRROVZgI"
+      },
+      "outputs": [],
+      "source": [
+        "# Create a heatmap\n",
+        "plt.figure(figsize=(10, 2))\n",
+        "plt.imshow(parameter_importance_img, cmap='viridis', aspect='auto')\n",
+        "plt.colorbar()\n",
+        "plt.title('Parameter Importance Heatmap')\n",
+        "plt.xlabel('Input Dimension')\n",
+        "plt.ylabel('Gradients')\n",
+        "plt.show()"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "uIY_p97aTnqC"
+      },
+      "outputs": [],
+      "source": [
+        "data_row=0\n",
+        "# Plot heatmap\n",
+        "plt.figure(figsize=(10, 2))\n",
+        "plt.imshow(parameter_importance_img[0+data_row:3+data_row,:], cmap='viridis', aspect='auto')\n",
+        "plt.colorbar()\n",
+        "plt.title('Parameter Importance Heatmap')\n",
+        "plt.xlabel('Input Dimension')\n",
+        "plt.ylabel('Gradients')\n",
+        "plt.show()"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "bH39LRMFVBxC"
+      },
+      "outputs": [],
+      "source": []
+    }
+  ],
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyO/1pN/PzzrMk59l3+IXDIt",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "display_name": "Python 3",
+      "name": "python3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 0
+}
